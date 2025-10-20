@@ -7,7 +7,7 @@ export default {
   data() {
     return {
       posts: [],
-      editingPost: null, // holds the post being edited
+      editingPost: null,
       editedEntry: "",
       editedMood: "",
       moods: ["Happy", "Sad", "Angry"],
@@ -16,7 +16,6 @@ export default {
 
   computed: {
     baseUrl() {
-      // Works in both localhost and Codespaces
       if (window.location.hostname === "localhost")
         return "http://localhost:3000";
       const codespace_host = window.location.hostname.replace("5173", "3000");
@@ -35,7 +34,7 @@ export default {
     },
 
     startEdit(post) {
-      this.editingPost = { ...post }; // copy to avoid direct mutation
+      this.editingPost = { ...post };
       this.editedEntry = post.entry;
       this.editedMood = post.mood;
     },
@@ -56,7 +55,6 @@ export default {
           }
         );
 
-        // Reflect changes in UI immediately
         const index = this.posts.findIndex(
           (p) => p.id === this.editingPost.id
         );
@@ -65,7 +63,6 @@ export default {
           this.posts[index].mood = this.editedMood;
         }
 
-        // Hide edit form
         this.cancelEdit();
       } catch (error) {
         console.error("Error updating post:", error);
@@ -109,8 +106,9 @@ export default {
       </tbody>
     </table>
 
-    <!-- Edit form (only shown when editing) -->
+    <!-- Edit form -->
     <div
+      id="editPost"
       v-if="editingPost"
       class="mt-6 p-4 border-t border-gray-300 bg-gray-50 rounded-lg"
     >
@@ -119,6 +117,7 @@ export default {
       <div class="mb-3">
         <label class="block font-medium">Entry</label>
         <textarea
+          id="entry"
           v-model="editedEntry"
           rows="4"
           class="border rounded-md p-2 w-full"
@@ -127,7 +126,11 @@ export default {
 
       <div class="mb-3">
         <label class="block font-medium">Mood</label>
-        <select v-model="editedMood" class="border rounded-md p-2 w-full">
+        <select
+          id="mood"
+          v-model="editedMood"
+          class="border rounded-md p-2 w-full"
+        >
           <option v-for="m in moods" :key="m" :value="m">
             {{ m }}
           </option>
@@ -136,12 +139,14 @@ export default {
 
       <div class="flex gap-2">
         <button
+          id="updatePost"
           @click="updatePost"
           class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500"
         >
           Update Post
         </button>
         <button
+          id="cancelEdit"
           @click="cancelEdit"
           class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-300"
         >

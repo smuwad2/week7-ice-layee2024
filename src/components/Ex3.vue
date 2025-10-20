@@ -16,7 +16,6 @@ export default {
 
   methods: {
     async submit() {
-
       try {
         const response = await axios.get(`/addPost`, {
           params: {
@@ -28,7 +27,6 @@ export default {
 
         console.log("Post added:", response.data);
         this.statusMsg = "Post added successfully!";
-        // clear inputs
         this.subject = "";
         this.entry = "";
         this.selectedMood = "Happy";
@@ -49,6 +47,7 @@ export default {
       <div>
         <label class="font-semibold">Subject:</label>
         <input
+          id="subject"
           type="text"
           v-model="subject"
           class="border rounded-md p-2 w-full"
@@ -59,6 +58,7 @@ export default {
       <div>
         <label class="font-semibold">Entry:</label>
         <textarea
+          id="entry"
           v-model="entry"
           rows="5"
           class="border rounded-md p-2 w-full"
@@ -68,7 +68,11 @@ export default {
 
       <div>
         <label class="font-semibold">Mood:</label>
-        <select v-model="selectedMood" class="border rounded-md p-2 w-full">
+        <select
+          id="mood"
+          v-model="selectedMood"
+          class="border rounded-md p-2 w-full"
+        >
           <option v-for="mood in moods" :key="mood" :value="mood">
             {{ mood }}
           </option>
@@ -76,6 +80,7 @@ export default {
       </div>
 
       <button
+        id="submitPost"
         @click="submit"
         class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-500"
       >
@@ -88,9 +93,9 @@ export default {
 
       <p class="text-gray-600">
         Click
-        <router-link to="/ViewPosts/" class="text-blue-600 underline"
-          >here</router-link
-        >
+        <router-link to="/ViewPosts/" class="text-blue-600 underline">
+          here
+        </router-link>
         to return to Main Page
       </p>
     </div>
