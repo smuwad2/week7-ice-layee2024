@@ -1,32 +1,106 @@
+<script setup>
+import axios from "axios";
+</script>
+
 <script>
-    export default { 
+export default {
+  data() {
+    return {
+      moods: ["Happy", "Sad", "Angry"],
+      selectedMood: "Happy",
+      subject: "",
+      entry: "",
+      statusMsg: "",
+    };
+  },
 
-       // add code here
+  methods: {
+    async submit() {
 
-    }
+      try {
+        const response = await axios.get(`/addPost`, {
+          params: {
+            subject: this.subject,
+            entry: this.entry,
+            mood: this.selectedMood,
+          },
+        });
+
+        console.log("Post added:", response.data);
+        this.statusMsg = "Post added successfully!";
+        // clear inputs
+        this.subject = "";
+        this.entry = "";
+        this.selectedMood = "Happy";
+      } catch (error) {
+        console.error("Error adding post:", error);
+        this.statusMsg = "Error adding post: " + error.message;
+      }
+    },
+  },
+};
 </script>
 
 <template>
-    <div class="table m-2">
-        <h3>Add a New Blog Post</h3>
+  <div class="m-4 p-4 border rounded-lg max-w-2xl mx-auto bg-white shadow-md">
+    <h3 class="text-xl font-bold mb-3 text-gray-800">Add a New Blog Post</h3>
 
-        Subject: <input type='text' size='30' v-model='subject' required>
-        <br>
+    <div class="space-y-3">
+      <div>
+        <label class="font-semibold">Subject:</label>
+        <input
+          type="text"
+          v-model="subject"
+          class="border rounded-md p-2 w-full"
+          required
+        />
+      </div>
 
-        Entry: <br>
-        <textarea name='entry' cols='80' rows='5' v-model='entry' required></textarea>
-        <br>
+      <div>
+        <label class="font-semibold">Entry:</label>
+        <textarea
+          v-model="entry"
+          rows="5"
+          class="border rounded-md p-2 w-full"
+          required
+        ></textarea>
+      </div>
 
-        Mood:
-        <!-- TODO: Build a dropdown list here for selecting the mood -->
+      <div>
+        <label class="font-semibold">Mood:</label>
+        <select v-model="selectedMood" class="border rounded-md p-2 w-full">
+          <option v-for="mood in moods" :key="mood" :value="mood">
+            {{ mood }}
+          </option>
+        </select>
+      </div>
 
-        <br>
+      <button
+        @click="submit"
+        class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-500"
+      >
+        Submit New Post
+      </button>
 
-        <br>
-        <button>Submit New Post</button>
+      <p class="text-sm text-gray-700 mt-2">{{ statusMsg }}</p>
 
-        <hr> Click  <a><router-link to="/ViewPosts/">here</router-link></a>  to return to Main Page
-       
+      <hr class="my-4" />
+
+      <p class="text-gray-600">
+        Click
+        <router-link to="/ViewPosts/" class="text-blue-600 underline"
+          >here</router-link
+        >
+        to return to Main Page
+      </p>
     </div>
+  </div>
 </template>
 
+<style scoped>
+textarea,
+input,
+select {
+  outline: none;
+}
+</style>
