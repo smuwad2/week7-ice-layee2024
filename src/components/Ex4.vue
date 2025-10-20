@@ -16,23 +16,14 @@
           <td>{{ post.entry }}</td>
           <td>{{ post.mood }}</td>
           <td>
-            <button
-              class="btn btn-secondary btn-sm"
-              @click="editPost(post)"
-            >
-              Edit
-            </button>
+            <button class="btn btn-outline-dark btn-sm" @click="editPost(post)">Edit</button>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <!-- Keep form always mounted so test sees it immediately -->
-    <div
-      id="editPost"
-      :style="{ visibility: showEdit ? 'visible' : 'hidden', height: showEdit ? 'auto' : '0px' }"
-      class="mt-4"
-    >
+    <!-- Edit form -->
+    <div id="editPost" v-if="showEdit" class="mt-4">
       <h5>Edit Post</h5>
       <div class="mb-3">
         <label for="entry">Entry:</label>
@@ -48,15 +39,13 @@
         </select>
       </div>
 
-      <button id="updatePost" class="btn btn-primary" @click="updatePost">
-        Update Post
-      </button>
+      <button class="btn btn-primary" @click="updatePost">Update Post</button>
     </div>
   </div>
 </template>
 
 <script>
-import axios from "axios"
+import axios from "axios";
 
 export default {
   data() {
@@ -66,31 +55,39 @@ export default {
       id: null,
       entry: "",
       mood: "",
-    }
+    };
   },
   async mounted() {
-    await this.loadPosts()
+    await this.getPosts();
   },
   methods: {
-    async loadPosts() {
-      const res = await axios.get("/posts")
-      this.posts = res.data
+    async getPosts() {
+      const res = await axios.get("http://localhost:3000/posts");
+      this.posts = res.data;
     },
     editPost(post) {
-      // Make edit form visible immediately
-      this.showEdit = true
-      this.id = post.id
-      this.entry = post.entry
-      this.mood = post.mood
+      this.showEdit = true;
+      this.id = post.id;
+      this.entry = post.entry;
+      this.mood = post.mood;
     },
     async updatePost() {
-      await axios.post(
-        `http://localhost:3000/updatePost?id=${this.id}`,
-        { entry: this.entry, mood: this.mood }
-      )
-      this.showEdit = false
-      await this.loadPosts()
+      await axios.post("http://localhost:3000/updatePost", {
+        id: this.id,
+        entry: this.entry,
+        mood: this.mood,
+      });
+      this.showEdit = false;
+      await this.getPosts();
     },
   },
-}
+};
 </script>
+
+<style scoped>
+#editPost {
+  border-top: 1px solid #ccc;
+  padding-top: 1rem;
+}
+</style>
+
