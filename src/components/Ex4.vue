@@ -73,7 +73,7 @@ export default {
   },
   methods: {
     async loadPosts() {
-      const res = await axios.get("http://localhost:3000/posts")
+      const res = await axios.get("/posts")
       this.posts = res.data
     },
     editPost(post) {
