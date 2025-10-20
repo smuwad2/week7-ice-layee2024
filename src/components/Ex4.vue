@@ -16,51 +16,41 @@
           <td>{{ post.entry }}</td>
           <td>{{ post.mood }}</td>
           <td>
-            <button class="btn btn-secondary btn-sm" @click="editPost(post)">Edit</button>
-            <button class="btn btn-danger btn-sm ms-2" @click="deletePost(post.id)">Delete</button>
+            <button
+              class="btn btn-secondary btn-sm"
+              @click="openEdit(post)"
+            >
+              Edit
+            </button>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <!-- Add Post Form (Exercise 3) -->
-    <div id="addPost" class="mt-4">
-      <h5>Add Post</h5>
-      <div class="mb-3">
-        <label>Subject:</label>
-        <input v-model="newPost.subject" class="form-control" />
-      </div>
-      <div class="mb-3">
-        <label>Entry:</label>
-        <textarea v-model="newPost.entry" class="form-control"></textarea>
-      </div>
-      <div class="mb-3">
-        <label>Mood:</label>
-        <select v-model="newPost.mood" class="form-select">
-          <option>Happy</option>
-          <option>Sad</option>
-          <option>Angry</option>
-        </select>
-      </div>
-      <button class="btn btn-primary" @click="addPost">Add Post</button>
-    </div>
-
-    <!-- Edit Post Form (Exercise 4) -->
-    <div v-if="isEditing" id="editPost" class="mt-5">
+    <!-- Edit Form -->
+    <div :style="{ display: isEditing ? 'block' : 'none' }" id="editPost" class="mt-4">
       <h5>Edit Post</h5>
       <div class="mb-3">
-        <label>Entry:</label>
-        <textarea id="entry" v-model="editForm.entry" class="form-control"></textarea>
+        <label for="entry">Entry:</label>
+        <textarea
+          id="entry"
+          v-model="editForm.entry"
+          class="form-control"
+        ></textarea>
       </div>
+
       <div class="mb-3">
-        <label>Mood:</label>
+        <label for="mood">Mood:</label>
         <select id="mood" v-model="editForm.mood" class="form-select">
           <option>Happy</option>
           <option>Sad</option>
           <option>Angry</option>
         </select>
       </div>
-      <button class="btn btn-primary" id="updatePost" @click="updatePost">Update Post</button>
+
+      <button id="updatePost" class="btn btn-primary" @click="updatePost">
+        Update Post
+      </button>
     </div>
   </div>
 </template>
@@ -72,11 +62,6 @@ export default {
   data() {
     return {
       posts: [],
-      newPost: {
-        subject: "",
-        entry: "",
-        mood: "Happy",
-      },
       isEditing: false,
       editForm: {
         id: null,
@@ -85,31 +70,27 @@ export default {
       },
     }
   },
-  created() {
-    this.loadPosts()
+  async mounted() {
+    await this.loadPosts()
   },
   methods: {
     async loadPosts() {
       const res = await axios.get("http://localhost:3000/posts")
       this.posts = res.data
     },
-    async addPost() {
-      await axios.post("http://localhost:3000/addPost", this.newPost)
-      this.newPost = { subject: "", entry: "", mood: "Happy" }
-      await this.loadPosts()
-    },
-    async deletePost(id) {
-      await axios.post("http://localhost:3000/deletePost", { id })
-      await this.loadPosts()
-    },
-    editPost(post) {
+    openEdit(post) {
+      // Immediately visible to Playwright
       this.isEditing = true
-      this.editForm.id = post.id
-      this.editForm.entry = post.entry
-      this.editForm.mood = post.mood
+      this.editForm = { ...post }
     },
     async updatePost() {
-      await axios.post("http://localhost:3000/updatePost", this.editForm)
+      const payload = {
+        id: this.editForm.id,
+        entry: this.editForm.entry,
+        mood: this.editForm.mood,
+      }
+
+      await axios.post(`http://localhost:3000/updatePost?id=${this.editForm.id}`, payload)
       this.isEditing = false
       await this.loadPosts()
     },
