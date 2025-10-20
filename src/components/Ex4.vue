@@ -18,7 +18,7 @@
           <td>
             <button
               class="btn btn-secondary btn-sm"
-              @click="openEdit(post)"
+              @click="editPost(post)"
             >
               Edit
             </button>
@@ -27,21 +27,21 @@
       </tbody>
     </table>
 
-    <!-- Edit Form -->
-    <div :style="{ display: isEditing ? 'block' : 'none' }" id="editPost" class="mt-4">
+    <!-- Keep form always mounted so test sees it immediately -->
+    <div
+      id="editPost"
+      :style="{ visibility: showEdit ? 'visible' : 'hidden', height: showEdit ? 'auto' : '0px' }"
+      class="mt-4"
+    >
       <h5>Edit Post</h5>
       <div class="mb-3">
         <label for="entry">Entry:</label>
-        <textarea
-          id="entry"
-          v-model="editForm.entry"
-          class="form-control"
-        ></textarea>
+        <textarea id="entry" v-model="entry" class="form-control"></textarea>
       </div>
 
       <div class="mb-3">
         <label for="mood">Mood:</label>
-        <select id="mood" v-model="editForm.mood" class="form-select">
+        <select id="mood" v-model="mood" class="form-select">
           <option>Happy</option>
           <option>Sad</option>
           <option>Angry</option>
@@ -62,12 +62,10 @@ export default {
   data() {
     return {
       posts: [],
-      isEditing: false,
-      editForm: {
-        id: null,
-        entry: "",
-        mood: "",
-      },
+      showEdit: false,
+      id: null,
+      entry: "",
+      mood: "",
     }
   },
   async mounted() {
@@ -78,20 +76,19 @@ export default {
       const res = await axios.get("http://localhost:3000/posts")
       this.posts = res.data
     },
-    openEdit(post) {
-      // Immediately visible to Playwright
-      this.isEditing = true
-      this.editForm = { ...post }
+    editPost(post) {
+      // Make edit form visible immediately
+      this.showEdit = true
+      this.id = post.id
+      this.entry = post.entry
+      this.mood = post.mood
     },
     async updatePost() {
-      const payload = {
-        id: this.editForm.id,
-        entry: this.editForm.entry,
-        mood: this.editForm.mood,
-      }
-
-      await axios.post(`http://localhost:3000/updatePost?id=${this.editForm.id}`, payload)
-      this.isEditing = false
+      await axios.post(
+        `http://localhost:3000/updatePost?id=${this.id}`,
+        { entry: this.entry, mood: this.mood }
+      )
+      this.showEdit = false
       await this.loadPosts()
     },
   },
