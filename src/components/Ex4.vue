@@ -1,150 +1,118 @@
-<script setup>
-import axios from "axios";
-import { nextTick } from "vue";
-</script>
-
-<script>
-const API_BASE = "http://localhost:3000";
-
-export default {
-  data() {
-    return {
-      posts: [],
-      editingPost: null,
-      editedEntry: "",
-      editedMood: "",
-      moods: ["Happy", "Sad", "Angry"],
-      isEditing: false, // for v-show visibility
-    };
-  },
-
-  methods: {
-    async loadPosts() {
-      try {
-        const { data } = await axios.get(`${API_BASE}/posts`);
-        this.posts = data;
-      } catch (err) {
-        console.error("Error fetching posts:", err);
-      }
-    },
-
-    async startEdit(post) {
-      this.editingPost = { ...post };
-      this.editedEntry = post.entry;
-      this.editedMood = post.mood;
-      this.isEditing = true;
-      await nextTick(); // ensures visibility before Playwright checks
-    },
-
-    cancelEdit() {
-      this.isEditing = false;
-      this.editingPost = null;
-      this.editedEntry = "";
-      this.editedMood = "";
-    },
-
-    async updatePost() {
-      if (!this.editingPost) return;
-      try {
-        await axios.post(`${API_BASE}/updatePost?id=${this.editingPost.id}`, {
-          entry: this.editedEntry,
-          mood: this.editedMood,
-        });
-
-        const idx = this.posts.findIndex(p => p.id === this.editingPost.id);
-        if (idx !== -1) {
-          this.posts[idx].entry = this.editedEntry;
-          this.posts[idx].mood = this.editedMood;
-        }
-
-        this.cancelEdit();
-      } catch (err) {
-        console.error("Error updating post:", err);
-      }
-    },
-  },
-
-  mounted() {
-    this.loadPosts();
-  },
-};
-</script>
-
 <template>
-  <div class="p-6 max-w-4xl mx-auto">
-    <h2 class="text-2xl font-bold mb-4">Blog Posts</h2>
-
-    <table class="min-w-full border border-gray-300 rounded-lg text-sm">
-      <thead class="bg-gray-100">
+  <div class="container mt-4">
+    <h4>Blog Posts</h4>
+    <table class="table table-striped">
+      <thead>
         <tr>
-          <th class="p-2 border">ID</th>
-          <th class="p-2 border">Entry</th>
-          <th class="p-2 border">Mood</th>
-          <th class="p-2 border">Action</th>
+          <th>ID</th>
+          <th>Entry</th>
+          <th>Mood</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="post in posts" :key="post.id" class="hover:bg-gray-50">
-          <td class="p-2 border">{{ post.id }}</td>
-          <td class="p-2 border">{{ post.entry }}</td>
-          <td class="p-2 border">{{ post.mood }}</td>
-          <td class="p-2 border text-center">
-            <button
-              @click="startEdit(post)"
-              class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-400"
-            >
-              Edit
-            </button>
+        <tr v-for="post in posts" :key="post.id">
+          <td>{{ post.id }}</td>
+          <td>{{ post.entry }}</td>
+          <td>{{ post.mood }}</td>
+          <td>
+            <button class="btn btn-secondary btn-sm" @click="editPost(post)">Edit</button>
+            <button class="btn btn-danger btn-sm ms-2" @click="deletePost(post.id)">Delete</button>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <!-- Keep editPost in DOM; toggle visibility -->
-    <div
-      id="editPost"
-      v-show="isEditing"
-      class="mt-6 p-4 border-t border-gray-300 bg-gray-50 rounded-lg transition-all duration-300"
-    >
-      <h3 class="text-lg font-semibold mb-2">Edit Post</h3>
-
+    <!-- Add Post Form (Exercise 3) -->
+    <div id="addPost" class="mt-4">
+      <h5>Add Post</h5>
       <div class="mb-3">
-        <label class="block font-medium">Entry</label>
-        <textarea
-          id="entry"
-          v-model="editedEntry"
-          rows="4"
-          class="border rounded-md p-2 w-full"
-        ></textarea>
+        <label>Subject:</label>
+        <input v-model="newPost.subject" class="form-control" />
       </div>
-
       <div class="mb-3">
-        <label class="block font-medium">Mood</label>
-        <select id="mood" v-model="editedMood" class="border rounded-md p-2 w-full">
-          <option v-for="m in moods" :key="m" :value="m">{{ m }}</option>
+        <label>Entry:</label>
+        <textarea v-model="newPost.entry" class="form-control"></textarea>
+      </div>
+      <div class="mb-3">
+        <label>Mood:</label>
+        <select v-model="newPost.mood" class="form-select">
+          <option>Happy</option>
+          <option>Sad</option>
+          <option>Angry</option>
         </select>
       </div>
+      <button class="btn btn-primary" @click="addPost">Add Post</button>
+    </div>
 
-      <div class="flex gap-2">
-        <button
-          id="updatePost"
-          @click="updatePost"
-          class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500"
-        >
-          Update Post
-        </button>
-        <button
-          id="cancelEdit"
-          @click="cancelEdit"
-          class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-300"
-        >
-          Cancel
-        </button>
+    <!-- Edit Post Form (Exercise 4) -->
+    <div v-if="isEditing" id="editPost" class="mt-5">
+      <h5>Edit Post</h5>
+      <div class="mb-3">
+        <label>Entry:</label>
+        <textarea id="entry" v-model="editForm.entry" class="form-control"></textarea>
       </div>
+      <div class="mb-3">
+        <label>Mood:</label>
+        <select id="mood" v-model="editForm.mood" class="form-select">
+          <option>Happy</option>
+          <option>Sad</option>
+          <option>Angry</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="updatePost" @click="updatePost">Update Post</button>
     </div>
   </div>
 </template>
 
-<style scoped>
-textarea, input, select { outline: none; }
-</style>
+<script>
+import axios from "axios"
+
+export default {
+  data() {
+    return {
+      posts: [],
+      newPost: {
+        subject: "",
+        entry: "",
+        mood: "Happy",
+      },
+      isEditing: false,
+      editForm: {
+        id: null,
+        entry: "",
+        mood: "",
+      },
+    }
+  },
+  created() {
+    this.loadPosts()
+  },
+  methods: {
+    async loadPosts() {
+      const res = await axios.get("http://localhost:3000/posts")
+      this.posts = res.data
+    },
+    async addPost() {
+      await axios.post("http://localhost:3000/addPost", this.newPost)
+      this.newPost = { subject: "", entry: "", mood: "Happy" }
+      await this.loadPosts()
+    },
+    async deletePost(id) {
+      await axios.post("http://localhost:3000/deletePost", { id })
+      await this.loadPosts()
+    },
+    editPost(post) {
+      this.isEditing = true
+      this.editForm.id = post.id
+      this.editForm.entry = post.entry
+      this.editForm.mood = post.mood
+    },
+    async updatePost() {
+      await axios.post("http://localhost:3000/updatePost", this.editForm)
+      this.isEditing = false
+      await this.loadPosts()
+    },
+  },
+}
+</script>
