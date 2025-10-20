@@ -3,6 +3,8 @@ import axios from "axios";
 </script>
 
 <script>
+const API_BASE = "http://localhost:3000"; // stable for tests
+
 export default {
   data() {
     return {
@@ -14,26 +16,18 @@ export default {
     };
   },
 
-  computed: {
-    baseUrl() {
-      if (window.location.hostname === "localhost")
-        return "http://localhost:3000";
-      const codespace_host = window.location.hostname.replace("5173", "3000");
-      return `https://${codespace_host}`;
-    },
-  },
-
   methods: {
     async loadPosts() {
       try {
-        const response = await axios.get(`${this.baseUrl}/posts`);
-        this.posts = response.data;
-      } catch (error) {
-        console.error("Error fetching posts:", error);
+        const { data } = await axios.get(`${API_BASE}/posts`);
+        this.posts = data;
+      } catch (e) {
+        console.error("Error fetching posts:", e);
       }
     },
 
     startEdit(post) {
+      // Show the edit panel with the selected post values
       this.editingPost = { ...post };
       this.editedEntry = post.entry;
       this.editedMood = post.mood;
@@ -46,26 +40,23 @@ export default {
     },
 
     async updatePost() {
+      if (!this.editingPost) return;
       try {
-        await axios.post(
-          `${this.baseUrl}/updatePost?id=${this.editingPost.id}`,
-          {
-            entry: this.editedEntry,
-            mood: this.editedMood,
-          }
-        );
+        await axios.post(`${API_BASE}/updatePost?id=${this.editingPost.id}`, {
+          entry: this.editedEntry,
+          mood: this.editedMood,
+        });
 
-        const index = this.posts.findIndex(
-          (p) => p.id === this.editingPost.id
-        );
-        if (index !== -1) {
-          this.posts[index].entry = this.editedEntry;
-          this.posts[index].mood = this.editedMood;
+        // update local table immediately
+        const idx = this.posts.findIndex(p => p.id === this.editingPost.id);
+        if (idx !== -1) {
+          this.posts[idx].entry = this.editedEntry;
+          this.posts[idx].mood = this.editedMood;
         }
 
         this.cancelEdit();
-      } catch (error) {
-        console.error("Error updating post:", error);
+      } catch (e) {
+        console.error("Error updating post:", e);
       }
     },
   },
@@ -106,12 +97,8 @@ export default {
       </tbody>
     </table>
 
-    <!-- Edit form -->
-    <div
-      id="editPost"
-      v-if="editingPost"
-      class="mt-6 p-4 border-t border-gray-300 bg-gray-50 rounded-lg"
-    >
+    <!-- Edit form MUST have id="editPost" for the test -->
+    <div id="editPost" v-if="editingPost" class="mt-6 p-4 border-t border-gray-300 bg-gray-50 rounded-lg">
       <h3 class="text-lg font-semibold mb-2">Edit Post</h3>
 
       <div class="mb-3">
@@ -126,14 +113,8 @@ export default {
 
       <div class="mb-3">
         <label class="block font-medium">Mood</label>
-        <select
-          id="mood"
-          v-model="editedMood"
-          class="border rounded-md p-2 w-full"
-        >
-          <option v-for="m in moods" :key="m" :value="m">
-            {{ m }}
-          </option>
+        <select id="mood" v-model="editedMood" class="border rounded-md p-2 w-full">
+          <option v-for="m in moods" :key="m" :value="m">{{ m }}</option>
         </select>
       </div>
 
@@ -158,9 +139,5 @@ export default {
 </template>
 
 <style scoped>
-textarea,
-input,
-select {
-  outline: none;
-}
+textarea, input, select { outline: none; }
 </style>

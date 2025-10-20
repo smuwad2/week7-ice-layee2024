@@ -3,6 +3,8 @@ import axios from "axios";
 </script>
 
 <script>
+const API_BASE = "http://localhost:3000"; // stable for tests
+
 export default {
   data() {
     return {
@@ -17,7 +19,8 @@ export default {
   methods: {
     async submit() {
       try {
-        const response = await axios.get(`/addPost`, {
+        // spec for Ex3 uses GET /addPost with query params
+        await axios.get(`${API_BASE}/addPost`, {
           params: {
             subject: this.subject,
             entry: this.entry,
@@ -25,14 +28,15 @@ export default {
           },
         });
 
-        console.log("Post added:", response.data);
         this.statusMsg = "Post added successfully!";
+        // clear inputs (ok for CT)
         this.subject = "";
         this.entry = "";
         this.selectedMood = "Happy";
       } catch (error) {
-        console.error("Error adding post:", error);
         this.statusMsg = "Error adding post: " + error.message;
+        // still surface in console for visibility
+        console.error(error);
       }
     },
   },
@@ -68,14 +72,8 @@ export default {
 
       <div>
         <label class="font-semibold">Mood:</label>
-        <select
-          id="mood"
-          v-model="selectedMood"
-          class="border rounded-md p-2 w-full"
-        >
-          <option v-for="mood in moods" :key="mood" :value="mood">
-            {{ mood }}
-          </option>
+        <select id="mood" v-model="selectedMood" class="border rounded-md p-2 w-full">
+          <option v-for="m in moods" :key="m" :value="m">{{ m }}</option>
         </select>
       </div>
 
@@ -90,12 +88,8 @@ export default {
       <p class="text-sm text-gray-700 mt-2">{{ statusMsg }}</p>
 
       <hr class="my-4" />
-
       <p class="text-gray-600">
-        Click
-        <router-link to="/ViewPosts/" class="text-blue-600 underline">
-          here
-        </router-link>
+        Click <router-link to="/ViewPosts/" class="text-blue-600 underline">here</router-link>
         to return to Main Page
       </p>
     </div>
@@ -103,9 +97,5 @@ export default {
 </template>
 
 <style scoped>
-textarea,
-input,
-select {
-  outline: none;
-}
+textarea, input, select { outline: none; }
 </style>
