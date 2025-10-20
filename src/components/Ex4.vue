@@ -1,9 +1,10 @@
 <script setup>
 import axios from "axios";
+import { nextTick } from "vue";
 </script>
 
 <script>
-const API_BASE = "http://localhost:3000"; // stable for tests
+const API_BASE = "http://localhost:3000";
 
 export default {
   data() {
@@ -13,6 +14,7 @@ export default {
       editedEntry: "",
       editedMood: "",
       moods: ["Happy", "Sad", "Angry"],
+      isEditing: false, // for v-show visibility
     };
   },
 
@@ -21,19 +23,21 @@ export default {
       try {
         const { data } = await axios.get(`${API_BASE}/posts`);
         this.posts = data;
-      } catch (e) {
-        console.error("Error fetching posts:", e);
+      } catch (err) {
+        console.error("Error fetching posts:", err);
       }
     },
 
-    startEdit(post) {
-      // Show the edit panel with the selected post values
+    async startEdit(post) {
       this.editingPost = { ...post };
       this.editedEntry = post.entry;
       this.editedMood = post.mood;
+      this.isEditing = true;
+      await nextTick(); // ensures visibility before Playwright checks
     },
 
     cancelEdit() {
+      this.isEditing = false;
       this.editingPost = null;
       this.editedEntry = "";
       this.editedMood = "";
@@ -47,7 +51,6 @@ export default {
           mood: this.editedMood,
         });
 
-        // update local table immediately
         const idx = this.posts.findIndex(p => p.id === this.editingPost.id);
         if (idx !== -1) {
           this.posts[idx].entry = this.editedEntry;
@@ -55,8 +58,8 @@ export default {
         }
 
         this.cancelEdit();
-      } catch (e) {
-        console.error("Error updating post:", e);
+      } catch (err) {
+        console.error("Error updating post:", err);
       }
     },
   },
@@ -97,8 +100,12 @@ export default {
       </tbody>
     </table>
 
-    <!-- Edit form MUST have id="editPost" for the test -->
-    <div id="editPost" v-if="editingPost" class="mt-6 p-4 border-t border-gray-300 bg-gray-50 rounded-lg">
+    <!-- Keep editPost in DOM; toggle visibility -->
+    <div
+      id="editPost"
+      v-show="isEditing"
+      class="mt-6 p-4 border-t border-gray-300 bg-gray-50 rounded-lg transition-all duration-300"
+    >
       <h3 class="text-lg font-semibold mb-2">Edit Post</h3>
 
       <div class="mb-3">
