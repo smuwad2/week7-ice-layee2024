@@ -3,7 +3,7 @@ import axios from "axios";
 </script>
 
 <script>
-const API_BASE = "http://localhost:3000"; // stable for tests
+const API_BASE = "http://localhost:5173";
 
 export default {
   data() {
@@ -20,7 +20,7 @@ export default {
     async submit() {
       try {
         // spec for Ex3 uses GET /addPost with query params
-        await axios.get(`${API_BASE}/addPost`, {
+        await axios.get(`/addPost`, {
           params: {
             subject: this.subject,
             entry: this.entry,
@@ -29,7 +29,6 @@ export default {
         });
 
         this.statusMsg = "Post added successfully!";
-        // clear inputs (ok for CT)
         this.subject = "";
         this.entry = "";
         this.selectedMood = "Happy";
